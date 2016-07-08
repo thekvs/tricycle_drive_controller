@@ -147,8 +147,8 @@ Odometry::integrateRungeKutta2(double linear, double angular)
     const double direction = heading_ + angular * 0.5;
 
     /// Runge-Kutta 2nd order integration:
-    x_ += linear * cos(direction);
-    y_ += linear * sin(direction);
+    x_ += linear * std::cos(direction);
+    y_ += linear * std::sin(direction);
     heading_ += angular;
 }
 
@@ -166,8 +166,8 @@ Odometry::integrateExact(double linear, double angular, double radius)
         /// Exact integration (should solve problems when angular is zero):
         const double heading_old = heading_;
         heading_ += angular;
-        x_ += radius * (sin(heading_) - sin(heading_old));
-        y_ += -radius * (cos(heading_) - cos(heading_old));
+        x_ += radius * (std::sin(heading_) - std::sin(heading_old));
+        y_ += -radius * (std::cos(heading_) - std::cos(heading_old));
     }
 }
 

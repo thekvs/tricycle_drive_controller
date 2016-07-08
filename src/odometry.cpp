@@ -87,11 +87,16 @@ Odometry::update(double front_wheel_pos, double front_wheel_caster_pos, const ro
     /// Compute linear and angular diff:
     const double cos_phi = std::cos(front_wheel_caster_pos);
     const double sin_phi = std::sin(front_wheel_caster_pos);
-    const double cot_phi = cos_phi / sin_phi;
 
     const double linear = front_wheel_est_vel * cos_phi;
     const double angular = front_wheel_est_vel * sin_phi / wheel_base_;
-    const double radius = cot_phi * wheel_base_;
+
+    double radius = 1e6;
+
+    if (fabs(angular) >= 1e-6) {
+        const double cot_phi = cos_phi / sin_phi;
+        radius = cot_phi * wheel_base_;
+    }
 
     /// Integrate odometry:
     integrate_fun_(linear, angular, radius);

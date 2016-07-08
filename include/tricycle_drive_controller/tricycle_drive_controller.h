@@ -64,7 +64,8 @@ namespace tricycle_drive_controller
  *  - a wheel collision geometry is a cylinder in the urdf
  *  - a wheel joint frame center's vertical projection on the floor must lie within the contact patch
  */
-class TricycleDriveController : public controller_interface::MultiInterfaceController<hardware_interface::VelocityJointInterface, hardware_interface::PositionJointInterface>
+class TricycleDriveController : public controller_interface::MultiInterfaceController<hardware_interface::VelocityJointInterface,
+                                    hardware_interface::PositionJointInterface>
 {
 public:
     TricycleDriveController();

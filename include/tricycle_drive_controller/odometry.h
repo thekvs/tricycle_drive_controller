@@ -46,8 +46,8 @@
 #include <boost/accumulators/statistics/rolling_mean.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/function.hpp>
-#include <ros/time.h>
 #include <ros/console.h>
+#include <ros/time.h>
 
 namespace tricycle_drive_controller
 {

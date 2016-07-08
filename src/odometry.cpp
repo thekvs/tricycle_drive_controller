@@ -60,7 +60,7 @@ Odometry::Odometry(size_t velocity_rolling_window_size)
     , velocity_rolling_window_size_(velocity_rolling_window_size)
     , linear_acc_(RollingWindow::window_size = velocity_rolling_window_size)
     , angular_acc_(RollingWindow::window_size = velocity_rolling_window_size)
-    , integrate_fun_(boost::bind(&Odometry::integrateExact, this, _1, _2))
+    , integrate_fun_(boost::bind(&Odometry::integrateExact, this, _1, _2, _3))
 {
 }
 
@@ -85,13 +85,16 @@ Odometry::update(double front_wheel_pos, double front_wheel_caster_pos, const ro
     front_wheel_old_pos_ = front_wheel_cur_pos;
 
     /// Compute linear and angular diff:
-    const double linear = front_wheel_est_vel * cos(front_wheel_caster_pos);
-    const double angular = front_wheel_est_vel * sin(front_wheel_caster_pos) / wheel_base_;
+    const double cos_phi = std::cos(front_wheel_caster_pos);
+    const double sin_phi = std::sin(front_wheel_caster_pos);
+    const double cot_phi = cos_phi / sin_phi;
 
-    // ROS_INFO_STREAM_NAMED("odometry", "linear: " << linear << ", angular: " << angular << ", front_wheel_caster_pos: " << front_wheel_caster_pos << ", front_wheel_pos: " << front_wheel_pos << ", wheel_base_: " << wheel_base_ << ", wheel_radius_: " << wheel_radius_);
+    const double linear = front_wheel_est_vel * cos_phi;
+    const double angular = front_wheel_est_vel * sin_phi / wheel_base_;
+    const double radius = cot_phi * wheel_base_;
 
     /// Integrate odometry:
-    integrate_fun_(linear, angular);
+    integrate_fun_(linear, angular, radius);
 
     /// We cannot estimate the speed with very small time intervals:
     const double dt = (time - timestamp_).toSec();
@@ -159,7 +162,7 @@ Odometry::updateOpenLoop(double linear, double angular, const ros::Time& time)
     /// Integrate odometry:
     const double dt = (time - timestamp_).toSec();
     timestamp_ = time;
-    integrate_fun_(linear * dt, angular * dt);
+    integrate_fun_(linear * dt, angular * dt, linear_ / angular_);
 }
 
 void
@@ -194,17 +197,16 @@ Odometry::integrateRungeKutta2(double linear, double angular)
  * \param angular
  */
 void
-Odometry::integrateExact(double linear, double angular)
+Odometry::integrateExact(double linear, double angular, double radius)
 {
     if (fabs(angular) < 1e-6)
         integrateRungeKutta2(linear, angular);
     else {
         /// Exact integration (should solve problems when angular is zero):
         const double heading_old = heading_;
-        const double r = linear / angular;
         heading_ += angular;
-        x_ += r * (sin(heading_) - sin(heading_old));
-        y_ += -r * (cos(heading_) - cos(heading_old));
+        x_ += radius * (sin(heading_) - sin(heading_old));
+        y_ += -radius * (cos(heading_) - cos(heading_old));
     }
 }
 

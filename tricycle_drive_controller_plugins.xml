@@ -1,0 +1,9 @@
+<library path="lib/libtricycle_drive_controller">
+
+  <class name="tricycle_drive_controller/TricycleDriveController" type="tricycle_drive_controller::TricycleDriveController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      The TricycleDriveController tracks velocity commands. It expects VelocityJointInterface and PositionJointInterface type of hardware interfaces.
+    </description>
+  </class>
+
+</library>

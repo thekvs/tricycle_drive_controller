@@ -95,6 +95,15 @@ public:
     void updateOpenLoop(double linear, double angular, const ros::Time& time);
 
     /**
+     * \brief Updates the odometry class with latest hardware encoders data
+     * \param front_wheel_velocity Linear velocity [m/s] of the front wheel
+     * \param front_wheel_angle  Steering wheel angle [rad]
+     * \param time    Current time
+     * \return true if the odometry is actually updated
+     */
+    bool updateFromHWEncoders(double front_wheel_velocity, double front_wheel_angle, const ros::Time& time);
+
+    /**
      * \brief heading getter
      * \return heading [rad]
      */

@@ -107,6 +107,7 @@ namespace tricycle_drive_controller
 
 TricycleDriveController::TricycleDriveController()
     : open_loop_(false)
+    , real_hw_(false)
     , command_struct_()
     , wheel_base_(0.0)
     , wheel_radius_(0.0)
@@ -155,8 +156,16 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
     ROS_INFO_STREAM_NAMED(name_, "Controller state will be published at " << publish_rate << "Hz.");
     publish_period_ = ros::Duration(1.0 / publish_rate);
 
-    controller_nh.param("open_loop", open_loop_, open_loop_);
+    controller_nh.param("open_loop", open_loop_, false);
     ROS_INFO_STREAM_NAMED(name_, "open_loop parameter set to " << open_loop_);
+
+    controller_nh.param("real_hw", real_hw_, false);
+    ROS_INFO_STREAM_NAMED(name_, "real_hw parameter set to " << real_hw_);
+
+    if (open_loop_ && real_hw_) {
+        ROS_ERROR_STREAM("parameters 'open_loop' and 'real_hw' can't be true at the same moment");
+        return false;
+    }
 
     controller_nh.param("wheel_separation_multiplier", wheel_separation_multiplier_, wheel_separation_multiplier_);
     ROS_INFO_STREAM_NAMED(name_, "Wheel separation will be multiplied by " << wheel_separation_multiplier_ << ".");
@@ -246,7 +255,9 @@ void
 TricycleDriveController::update(const ros::Time& time, const ros::Duration& period)
 {
     // COMPUTE AND PUBLISH ODOMETRY
-    if (open_loop_) {
+    if (real_hw_) {
+        odometry_.updateFromHWEncoders(front_wheel_cmd.front().getVelocity(), front_wheel_cmd.front().getPosition(), time);
+    } else if (open_loop_) {
         odometry_.updateOpenLoop(last0_cmd_.speed, last0_cmd_.angle, time);
     } else {
         double front_wheel_pos = 0.0;

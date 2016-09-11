@@ -104,6 +104,7 @@ private:
     ros::Duration publish_period_;
     ros::Time last_state_publish_time_;
     bool open_loop_;
+    bool real_hw_;
 
     /// Hardware handles:
     std::vector<hardware_interface::JointHandle> front_wheel_cmd;

@@ -131,6 +131,44 @@ Odometry::updateOpenLoop(double linear, double angular, const ros::Time& time)
     integrate_fun_(linear * dt, angular * dt, linear_ / angular_);
 }
 
+bool
+Odometry::updateFromHWEncoders(double front_wheel_velocity, double front_wheel_angle, const ros::Time& time)
+{
+    /// Compute linear and angular diff:
+    const double cos_phi = std::cos(front_wheel_angle);
+    const double sin_phi = std::sin(front_wheel_angle);
+
+    const double linear = front_wheel_velocity * cos_phi;
+    const double angular = front_wheel_velocity * sin_phi / wheel_base_;
+
+    double radius = 1e6;
+
+    if (fabs(angular) >= 1e-6) {
+        const double cot_phi = cos_phi / sin_phi;
+        radius = cot_phi * wheel_base_;
+    }
+
+    /// Integrate odometry:
+    integrate_fun_(linear, angular, radius);
+
+    /// We cannot estimate the speed with very small time intervals:
+    const double dt = (time - timestamp_).toSec();
+    if (dt < 0.0001) {
+        return false; // Interval too small to integrate with
+    }
+
+    timestamp_ = time;
+
+    /// Estimate speeds using a rolling mean to filter them out:
+    linear_acc_(linear / dt);
+    angular_acc_(angular / dt);
+
+    linear_ = bacc::rolling_mean(linear_acc_);
+    angular_ = bacc::rolling_mean(angular_acc_);
+
+    return true;
+}
+
 void
 Odometry::setWheelParams(double wheel_base, double wheel_radius)
 {

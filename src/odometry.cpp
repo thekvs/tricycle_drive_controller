@@ -148,20 +148,20 @@ Odometry::updateFromHWEncoders(double front_wheel_velocity, double front_wheel_a
         radius = cot_phi * wheel_base_;
     }
 
+    const double dt = (time - timestamp_).toSec();
+    timestamp_ = time;
+
     /// Integrate odometry:
-    integrate_fun_(linear, angular, radius);
+    integrate_fun_(linear * dt, angular * dt, radius);
 
     /// We cannot estimate the speed with very small time intervals:
-    const double dt = (time - timestamp_).toSec();
     if (dt < 0.0001) {
         return false; // Interval too small to integrate with
     }
 
-    timestamp_ = time;
-
     /// Estimate speeds using a rolling mean to filter them out:
-    linear_acc_(linear / dt);
-    angular_acc_(angular / dt);
+    linear_acc_(linear);
+    angular_acc_(angular);
 
     linear_ = bacc::rolling_mean(linear_acc_);
     angular_ = bacc::rolling_mean(angular_acc_);

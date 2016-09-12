@@ -256,7 +256,7 @@ TricycleDriveController::update(const ros::Time& time, const ros::Duration& peri
 {
     // COMPUTE AND PUBLISH ODOMETRY
     if (real_hw_) {
-        odometry_.updateFromHWEncoders(front_wheel_cmd.front().getVelocity(), front_wheel_cmd.front().getPosition(), time);
+        odometry_.updateFromHWEncoders(front_wheel_cmd.front().getVelocity(), front_wheel_caster_cmd.front().getPosition(), time);
     } else if (open_loop_) {
         odometry_.updateOpenLoop(last0_cmd_.speed, last0_cmd_.angle, time);
     } else {

@@ -107,8 +107,7 @@ public:
      * \brief heading getter
      * \return heading [rad]
      */
-    double
-    getHeading() const
+    double getHeading() const
     {
         return heading_;
     }
@@ -117,8 +116,7 @@ public:
      * \brief x position getter
      * \return x position [m]
      */
-    double
-    getX() const
+    double getX() const
     {
         return x_;
     }
@@ -127,8 +125,7 @@ public:
      * \brief y position getter
      * \return y position [m]
      */
-    double
-    getY() const
+    double getY() const
     {
         return y_;
     }
@@ -137,8 +134,7 @@ public:
      * \brief linear velocity getter
      * \return linear velocity [m/s]
      */
-    double
-    getLinear() const
+    double getLinear() const
     {
         return linear_;
     }
@@ -147,8 +143,7 @@ public:
      * \brief angular velocity getter
      * \return angular velocity [rad/s]
      */
-    double
-    getAngular() const
+    double getAngular() const
     {
         return angular_;
     }

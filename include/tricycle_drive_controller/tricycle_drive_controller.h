@@ -47,6 +47,7 @@
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
+#include <ackermann_msgs/AckermannDrive.h>
 
 #include <tricycle_drive_controller/odometry.h>
 #include <tricycle_drive_controller/speed_limiter.h>
@@ -142,7 +143,7 @@ private:
     double wheel_radius_multiplier_;
 
     /// Timeout to consider cmd_vel commands old:
-    double cmd_timeout_;
+    double ackermann_cmd_timeout_;
 
     /// Frame to use for the robot base:
     std::string base_frame_id_;
@@ -167,9 +168,9 @@ private:
 
     /**
      * \brief Velocity command callback
-     * \param command Velocity command message
+     * \param command Velocity command message (AckermannDrive)
      */
-    void cmdVelCallback(const geometry_msgs::Twist& command);
+    void cmdAckermannCallback(const ackermann_msgs::AckermannDrive& command);
 
     /**
      * \brief Get the wheel names from a wheel param

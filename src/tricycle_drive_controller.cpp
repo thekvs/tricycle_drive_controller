@@ -113,7 +113,7 @@ TricycleDriveController::TricycleDriveController()
     , wheel_radius_(0.0)
     , wheel_separation_multiplier_(1.0) // FIXME: not needed
     , wheel_radius_multiplier_(1.0)
-    , ackermann_cmd_timeout_(0.5)
+    , cmd_timeout_(0.5)
     , base_frame_id_("base_link")
     , enable_odom_tf_(true)
     , wheel_joints_size_(0)
@@ -152,7 +152,7 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
 
     // Odometry related:
     double publish_rate;
-    controller_nh.param("publish_rate", publish_rate, 50.0);
+    controller_nh.param("publish_rate", publish_rate, 60.0);
     ROS_INFO_STREAM_NAMED(name_, "Controller state will be published at " << publish_rate << "Hz.");
     publish_period_ = ros::Duration(1.0 / publish_rate);
 
@@ -180,8 +180,8 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
     odometry_.setVelocityRollingWindowSize(velocity_rolling_window_size);
 
     // Twist command related:
-    controller_nh.param("ackermann_cmd_timeout", ackermann_cmd_timeout_, ackermann_cmd_timeout_);
-    ROS_INFO_STREAM_NAMED(name_, "Velocity commands will be considered old if they are older than " << ackermann_cmd_timeout_ << "s.");
+    controller_nh.param("cmd_timeout", cmd_timeout_, cmd_timeout_);
+    ROS_INFO_STREAM_NAMED(name_, "Velocity commands will be considered old if they are older than " << cmd_timeout_ << "s.");
 
     controller_nh.param("base_frame_id", base_frame_id_, base_frame_id_);
     ROS_INFO_STREAM_NAMED(name_, "Base frame_id set to " << base_frame_id_);
@@ -246,7 +246,7 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
         }
     }
 
-    sub_command_ = controller_nh.subscribe("ackermann_cmd", 1, &TricycleDriveController::cmdAckermannCallback, this);
+    sub_command_ = controller_nh.subscribe("/cmd_vel", 1, &TricycleDriveController::cmdVelCallback, this);
 
     return true;
 }
@@ -312,7 +312,7 @@ TricycleDriveController::update(const ros::Time& time, const ros::Duration& peri
     const double dt = (time - curr_cmd.stamp).toSec();
 
     // Brake if cmd_vel has timeout:
-    if (dt > ackermann_cmd_timeout_) {
+    if (dt > cmd_timeout_) {
         curr_cmd.speed = 0.0;
         // curr_cmd.angle = 0.0;
     }
@@ -326,15 +326,9 @@ TricycleDriveController::update(const ros::Time& time, const ros::Duration& peri
     last1_cmd_ = last0_cmd_;
     last0_cmd_ = curr_cmd;
 
-    // Apply multiplier:
-    const double wr = wheel_radius_multiplier_ * wheel_radius_;
-
-    // Compute wheel velocity:
-    const double vel = curr_cmd.speed / wr;
-
     // Set wheel velocity and steering angle:
     for (size_t i = 0; i < wheel_joints_size_; ++i) {
-        front_wheel_cmd[i].setCommand(vel);
+        front_wheel_cmd[i].setCommand(curr_cmd.speed);
         front_wheel_caster_cmd[i].setCommand(curr_cmd.angle);
     }
 }
@@ -367,11 +361,11 @@ TricycleDriveController::brake()
 }
 
 void
-TricycleDriveController::cmdAckermannCallback(const ackermann_msgs::AckermannDrive& command)
+TricycleDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
 {
     if (isRunning()) {
-        command_struct_.angle = command.steering_angle;
-        command_struct_.speed = command.speed;
+        command_struct_.angle = command.angular.z;
+        command_struct_.speed = command.linear.x;
         command_struct_.stamp = ros::Time::now();
         command_.writeFromNonRT(command_struct_);
         ROS_DEBUG_STREAM_NAMED(name_, "Added values to command. "
@@ -471,7 +465,7 @@ TricycleDriveController::setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHan
 
     // clang-format off
     // Setup odometry realtime publisher + odom message constant fields
-    odom_pub_.reset(new realtime_tools::RealtimePublisher<nav_msgs::Odometry>(controller_nh, "odom", 100));
+    odom_pub_.reset(new realtime_tools::RealtimePublisher<nav_msgs::Odometry>(controller_nh, "/odom", 100));
     odom_pub_->msg_.header.frame_id = "odom";
     odom_pub_->msg_.child_frame_id = base_frame_id_;
     odom_pub_->msg_.pose.pose.position.z = 0;
@@ -499,6 +493,7 @@ TricycleDriveController::setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHan
     tf_odom_pub_->msg_.transforms[0].child_frame_id = base_frame_id_;
     tf_odom_pub_->msg_.transforms[0].header.frame_id = "odom";
     // clang-format on
+
 }
 
 } // namespace tricycle_drive_controller

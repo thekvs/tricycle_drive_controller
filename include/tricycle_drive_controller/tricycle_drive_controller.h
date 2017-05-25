@@ -47,11 +47,9 @@
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
-#include <ackermann_msgs/AckermannDrive.h>
-
 #include <tricycle_drive_controller/odometry.h>
 #include <tricycle_drive_controller/speed_limiter.h>
-#include <control_toolbox/pid.h>
+#include <control_toolbox/pid.h> 
 
 namespace tricycle_drive_controller
 {
@@ -113,7 +111,7 @@ private:
 
     // PID Controller
     control_toolbox::Pid velocity_pid_controller_;
-//    control_toolbox::Pid position_pid_controller_;
+    control_toolbox::Pid position_pid_controller_;
     ros::Time time_of_last_cycle_;
 
     /// Velocity command related:
@@ -176,7 +174,7 @@ private:
      * \brief Velocity command callback
      * \param command Velocity command message (AckermannDrive)
      */
-    void cmdAckermannCallback(const ackermann_msgs::AckermannDrive& command);
+    void cmdVelCallback(const geometry_msgs::Twist& command);
 
     /**
      * \brief Get the wheel names from a wheel param

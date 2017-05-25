@@ -84,7 +84,7 @@ isCylinder(const boost::shared_ptr<const urdf::Link>& link)
     return true;
 }
 
-/*
+/* 
  * \brief Get the wheel radius
  * \param [in]  wheel_link   Wheel link
  * \param [out] wheel_radius Wheel radius [m]
@@ -247,17 +247,17 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
     }
 
     // init PID controllers
-    if (!velocity_pid_controller_.init(ros::NodeHandle(controller_nh, "velocity_pid_parameters"))){
+    if (!velocity_pid_controller_.init(ros::NodeHandle(controller_nh, "velocity_pid_parameters"), false)){
     	ROS_ERROR_STREAM("Could not construct PID controller for joint " << front_wheel_cmd.front().getName());
       return false;
     }
 
-//    if (!position_pid_controller_.init(ros::NodeHandle(controller_nh, "position_pid_parameters"))){
-//    	ROS_ERROR_STREAM("Could not construct PID controller for joint " << front_wheel_caster_cmd.front().getName());
-//      return false;
-//    }
+    if (!position_pid_controller_.init(ros::NodeHandle(controller_nh, "position_pid_parameters"))){
+    	ROS_ERROR_STREAM("Could not construct PID controller for joint " << front_wheel_caster_cmd.front().getName());
+      return false;
+    }
 
-    sub_command_ = controller_nh.subscribe("/ackermann_cmd", 1, &TricycleDriveController::cmdAckermannCallback, this);
+    sub_command_ = controller_nh.subscribe("/cmd_vel", 1, &TricycleDriveController::cmdVelCallback, this);
 
     return true;
 }
@@ -348,13 +348,13 @@ TricycleDriveController::update(const ros::Time& time, const ros::Duration& peri
     const double vel = velocity_pid_controller_.computeCommand(curr_cmd.speed - front_wheel_cmd.front().getVelocity(), duration) / wr;
 
     // Compute steering angle;
-//    const double angle = position_pid_controller_.computeCommand(curr_cmd.angle -  front_wheel_caster_cmd.front().getPosition(), duration);
+    const double angle = position_pid_controller_.computeCommand(curr_cmd.angle -  front_wheel_caster_cmd.front().getPosition(), duration);
 
 
     // Set wheel velocity and steering angle:
     for (size_t i = 0; i < wheel_joints_size_; ++i) {
         front_wheel_cmd[i].setCommand(vel);
-        front_wheel_caster_cmd[i].setCommand(curr_cmd.angle);
+        front_wheel_caster_cmd[i].setCommand(angle);
     }
 }
 
@@ -370,7 +370,7 @@ TricycleDriveController::starting(const ros::Time& time)
     odometry_.init(time);
 
     velocity_pid_controller_.reset();
-//    position_pid_controller_.reset();
+    position_pid_controller_.reset();
 
 }
 
@@ -391,11 +391,11 @@ TricycleDriveController::brake()
 }
 
 void
-TricycleDriveController::cmdAckermannCallback(const ackermann_msgs::AckermannDrive& command)
+TricycleDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
 {
     if (isRunning()) {
-        command_struct_.angle = command.steering_angle;
-        command_struct_.speed = command.speed;
+        command_struct_.angle = command.angular.z;
+        command_struct_.speed = command.linear.x;
         command_struct_.stamp = ros::Time::now();
         command_.writeFromNonRT(command_struct_);
         ROS_DEBUG_STREAM_NAMED(name_, "Added values to command. "

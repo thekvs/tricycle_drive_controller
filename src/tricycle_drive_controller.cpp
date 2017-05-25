@@ -246,17 +246,6 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
         }
     }
 
-    // init PID controllers
-    if (!velocity_pid_controller_.init(ros::NodeHandle(controller_nh, "velocity_pid_parameters"), false)){
-    	ROS_ERROR_STREAM("Could not construct PID controller for joint " << front_wheel_cmd.front().getName());
-      return false;
-    }
-
-    if (!position_pid_controller_.init(ros::NodeHandle(controller_nh, "position_pid_parameters"))){
-    	ROS_ERROR_STREAM("Could not construct PID controller for joint " << front_wheel_caster_cmd.front().getName());
-      return false;
-    }
-
     sub_command_ = controller_nh.subscribe("/cmd_vel", 1, &TricycleDriveController::cmdVelCallback, this);
 
     return true;
@@ -340,21 +329,10 @@ TricycleDriveController::update(const ros::Time& time, const ros::Duration& peri
     // Apply multiplier:
     const double wr = wheel_radius_multiplier_ * wheel_radius_;
 
-    const ros::Duration duration =  time - time_of_last_cycle_ ;
-
-    time_of_last_cycle_ = time;
-
-    // Compute wheel velocity:
-    const double vel = velocity_pid_controller_.computeCommand(curr_cmd.speed - front_wheel_cmd.front().getVelocity(), duration) / wr;
-
-    // Compute steering angle;
-    const double angle = position_pid_controller_.computeCommand(curr_cmd.angle -  front_wheel_caster_cmd.front().getPosition(), duration);
-
-
     // Set wheel velocity and steering angle:
     for (size_t i = 0; i < wheel_joints_size_; ++i) {
-        front_wheel_cmd[i].setCommand(vel);
-        front_wheel_caster_cmd[i].setCommand(angle);
+        front_wheel_cmd[i].setCommand(curr_cmd.speed/wr);
+        front_wheel_caster_cmd[i].setCommand(curr_cmd.angle);
     }
 }
 
@@ -365,13 +343,8 @@ TricycleDriveController::starting(const ros::Time& time)
 
     // Register starting time used to keep fixed rate
     last_state_publish_time_ = time;
-    time_of_last_cycle_ = time;
 
     odometry_.init(time);
-
-    velocity_pid_controller_.reset();
-    position_pid_controller_.reset();
-
 }
 
 void

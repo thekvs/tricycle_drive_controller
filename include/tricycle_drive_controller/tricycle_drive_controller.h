@@ -49,7 +49,7 @@
 
 #include <tricycle_drive_controller/odometry.h>
 #include <tricycle_drive_controller/speed_limiter.h>
-#include <control_toolbox/pid.h> 
+
 
 namespace tricycle_drive_controller
 {
@@ -108,11 +108,6 @@ private:
     /// Hardware handles:
     std::vector<hardware_interface::JointHandle> front_wheel_cmd;
     std::vector<hardware_interface::JointHandle> front_wheel_caster_cmd;
-
-    // PID Controller
-    control_toolbox::Pid velocity_pid_controller_;
-    control_toolbox::Pid position_pid_controller_;
-    ros::Time time_of_last_cycle_;
 
     /// Velocity command related:
     struct Commands {

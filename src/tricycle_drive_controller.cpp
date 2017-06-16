@@ -367,8 +367,29 @@ void
 TricycleDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
 {
     if (isRunning()) {
+    	// convert vehicle velocity to wheel velocity
+    	if (command.angular.z == 0) {
+    		command_struct_.speed = command.linear.x;
+    		command_struct_.angle = 0;
+    	    }
+    	else {
+
+    	    double radius = command.linear.x / command.angular.z;
+    	    if(radius==0)
+    	    	radius = 0.001;
+    	    command_struct_.angle = std::atan(wheel_base_ / radius);
+    	    if(std::fabs(command_struct_.angle)>1.57)
+    	    	command_struct_.speed = limiter_lin_.max_velocity;
+    	    else
+    	    	command_struct_.speed = command.linear.x / std::cos(command_struct_.angle);
+    	    //command_struct_.speed = cmd_msg->angular.z * wheel_base_ / std::sin(cmd_.angle);
+
+    	}
+
+    	/* Old code
         command_struct_.angle = command.angular.z;
         command_struct_.speed = command.linear.x;
+        */
         command_struct_.stamp = ros::Time::now();
         command_.writeFromNonRT(command_struct_);
         ROS_DEBUG_STREAM_NAMED(name_, "Added values to command. "

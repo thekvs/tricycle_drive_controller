@@ -489,7 +489,7 @@ TricycleDriveController::setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHan
 
     // clang-format off
     // Setup odometry realtime publisher + odom message constant fields
-    odom_pub_.reset(new realtime_tools::RealtimePublisher<nav_msgs::Odometry>(controller_nh, "odom", 100));
+    odom_pub_.reset(new realtime_tools::RealtimePublisher<nav_msgs::Odometry>(controller_nh, "/odom", 100));
     odom_pub_->msg_.header.frame_id = "odom";
     odom_pub_->msg_.child_frame_id = base_frame_id_;
     odom_pub_->msg_.pose.pose.position.z = 0;

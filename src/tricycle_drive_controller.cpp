@@ -375,11 +375,21 @@ TricycleDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
     	else {
 
     	    double radius = command.linear.x / command.angular.z;
-    	    if(radius==0)
-    	    	radius = 0.001;
+    	    if(radius==0){
+    	    	radius = 0.01;
+		//radius = std::copysign(radius,command.angular.z);
+                if(command.angular.z<0)
+                  radius = radius * -1.0;
+	    }	
     	    command_struct_.angle = std::atan(wheel_base_ / radius);
-    	    if(std::fabs(command_struct_.angle)>1.57)
-    	    	command_struct_.speed = limiter_lin_.max_velocity;
+    	    if(std::fabs(command_struct_.angle)>1.55){
+    	    	// command_struct_.speed = limiter_lin_.max_velocity;
+                // command_struct_.speed = std::copysign(wheel_base_ * command.angular.z,command.linear.x);
+              if(command.linear.x>0) 
+                command_struct_.speed = wheel_base_ * command.angular.z;
+  	      else
+                command_struct_.speed = wheel_base_ * command.angular.z * -1.0;	              
+            }
     	    else
     	    	command_struct_.speed = command.linear.x / std::cos(command_struct_.angle);
     	    //command_struct_.speed = cmd_msg->angular.z * wheel_base_ / std::sin(cmd_.angle);

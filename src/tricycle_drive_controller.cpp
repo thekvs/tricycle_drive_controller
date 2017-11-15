@@ -331,7 +331,7 @@ TricycleDriveController::update(const ros::Time& time, const ros::Duration& peri
 
     // Set wheel velocity and steering angle:
     for (size_t i = 0; i < wheel_joints_size_; ++i) {
-        front_wheel_cmd[i].setCommand(curr_cmd.speed/wr);
+        front_wheel_cmd[i].setCommand(curr_cmd.speed);
         front_wheel_caster_cmd[i].setCommand(curr_cmd.angle);
     }
 }

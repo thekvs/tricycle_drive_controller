@@ -117,6 +117,7 @@ TricycleDriveController::TricycleDriveController()
     , base_frame_id_("base_link")
     , enable_odom_tf_(true)
     , wheel_joints_size_(0)
+    , odom_topic_("/odom")
 {
 }
 
@@ -169,6 +170,9 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
 
     controller_nh.param("wheel_separation_multiplier", wheel_separation_multiplier_, wheel_separation_multiplier_);
     ROS_INFO_STREAM_NAMED(name_, "Wheel separation will be multiplied by " << wheel_separation_multiplier_ << ".");
+
+    controller_nh.param("odom_topic", odom_topic_, odom_topic_);
+    ROS_INFO_STREAM_NAMED(name_, "Odom topic set to" << odom_topic_ << ".");
 
     controller_nh.param("wheel_radius_multiplier", wheel_radius_multiplier_, wheel_radius_multiplier_);
     ROS_INFO_STREAM_NAMED(name_, "Wheel radius will be multiplied by " << wheel_radius_multiplier_ << ".");
@@ -493,7 +497,7 @@ TricycleDriveController::setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHan
 
     // clang-format off
     // Setup odometry realtime publisher + odom message constant fields
-    odom_pub_.reset(new realtime_tools::RealtimePublisher<nav_msgs::Odometry>(controller_nh, "odom", 100));
+    odom_pub_.reset(new realtime_tools::RealtimePublisher<nav_msgs::Odometry>(controller_nh, odom_topic_, 100));
     odom_pub_->msg_.header.frame_id = "odom";
     odom_pub_->msg_.child_frame_id = base_frame_id_;
     odom_pub_->msg_.pose.pose.position.z = 0;

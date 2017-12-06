@@ -140,6 +140,7 @@ private:
     /// Wheel separation and radius calibration multipliers:
     double wheel_separation_multiplier_;
     double wheel_radius_multiplier_;
+    double wheel_radius_multiplier_odom_;
 
     /// Timeout to consider cmd_vel commands old:
     double ackermann_cmd_timeout_;

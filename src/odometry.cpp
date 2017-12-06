@@ -138,8 +138,8 @@ Odometry::updateFromHWEncoders(double front_wheel_velocity, double front_wheel_a
     const double cos_phi = std::cos(front_wheel_angle);
     const double sin_phi = std::sin(front_wheel_angle);
 
-    const double linear = front_wheel_velocity * cos_phi;
-    const double angular = front_wheel_velocity * sin_phi / wheel_base_;
+    const double linear = front_wheel_velocity * wheel_radius_ * cos_phi;
+    const double angular = front_wheel_velocity * wheel_radius_* sin_phi / wheel_base_;
 
     double radius = 1e6;
 

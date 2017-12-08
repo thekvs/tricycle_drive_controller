@@ -84,7 +84,7 @@ isCylinder(const boost::shared_ptr<const urdf::Link>& link)
     return true;
 }
 
-/* 
+/*
  * \brief Get the wheel radius
  * \param [in]  wheel_link   Wheel link
  * \param [out] wheel_radius Wheel radius [m]
@@ -113,6 +113,7 @@ TricycleDriveController::TricycleDriveController()
     , wheel_radius_(0.0)
     , wheel_separation_multiplier_(1.0) // FIXME: not needed
     , wheel_radius_multiplier_(1.0)
+    , wheel_radius_multiplier_odom_(1.0)
     , ackermann_cmd_timeout_(0.5)
     , base_frame_id_("base_link")
     , enable_odom_tf_(true)
@@ -177,6 +178,9 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
     controller_nh.param("wheel_radius_multiplier", wheel_radius_multiplier_, wheel_radius_multiplier_);
     ROS_INFO_STREAM_NAMED(name_, "Wheel radius will be multiplied by " << wheel_radius_multiplier_ << ".");
 
+    controller_nh.param("wheel_radius_multiplier_odom", wheel_radius_multiplier_odom_, wheel_radius_multiplier_odom_);
+    ROS_INFO_STREAM_NAMED(name_, "Wheel radius will be multiplied by " << wheel_radius_multiplier_odom_ << ".");
+
     int velocity_rolling_window_size = 10;
     controller_nh.param("velocity_rolling_window_size", velocity_rolling_window_size, velocity_rolling_window_size);
     ROS_INFO_STREAM_NAMED(name_, "Velocity rolling window size of " << velocity_rolling_window_size << ".");
@@ -228,7 +232,7 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
     }
 
     // Regardless of how we got radius, use it to set the odometry parameters
-    const double wr = wheel_radius_multiplier_ * wheel_radius_;
+    const double wr = wheel_radius_multiplier_odom_ * wheel_radius_;
     odometry_.setWheelParams(wheel_base_, wr);
 
     ROS_INFO_STREAM_NAMED(name_, "Odometry params : wheel radius " << wr << ", wheel base " << wheel_base_);
@@ -335,7 +339,7 @@ TricycleDriveController::update(const ros::Time& time, const ros::Duration& peri
 
     // Set wheel velocity and steering angle:
     for (size_t i = 0; i < wheel_joints_size_; ++i) {
-        front_wheel_cmd[i].setCommand(curr_cmd.speed);
+        front_wheel_cmd[i].setCommand(curr_cmd.speed / wr);
         front_wheel_caster_cmd[i].setCommand(curr_cmd.angle);
     }
 }
@@ -381,12 +385,12 @@ TricycleDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
     	    double radius = command.linear.x / command.angular.z;
     	    if(radius==0)
     	    	radius = 0.0001;
-		radius = boost::math::copysign(radius,command.angular.z);	
+		radius = boost::math::copysign(radius,command.angular.z);
 
     	    command_struct_.angle = std::atan(wheel_base_ / radius);
     	    if(std::fabs(command_struct_.angle)>1.55){
                 command_struct_.speed = boost::math::copysign(wheel_base_ * command.angular.z,command.linear.x);
-              
+
             }
     	    else {
     	    	command_struct_.speed = command.linear.x / std::cos(command_struct_.angle);

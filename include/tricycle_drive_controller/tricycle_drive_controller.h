@@ -137,6 +137,9 @@ private:
     /// Wheel radius (assuming it's the same for the left and right wheels):
     double wheel_radius_;
 
+    /// Offset of the front wheel center from the caster joint axis [m]
+    double front_wheel_caster_offset_;
+
     /// Wheel separation and radius calibration multipliers:
     double wheel_separation_multiplier_;
     double wheel_radius_multiplier_;

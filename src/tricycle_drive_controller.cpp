@@ -111,6 +111,7 @@ TricycleDriveController::TricycleDriveController()
     , command_struct_()
     , wheel_base_(0.0)
     , wheel_radius_(0.0)
+    , front_wheel_caster_offset_(0.0)
     , wheel_separation_multiplier_(1.0) // FIXME: not needed
     , wheel_radius_multiplier_(1.0)
     , wheel_radius_multiplier_odom_(1.0)
@@ -221,6 +222,7 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
     // If either parameter is not available, we need to look up the value in the URDF
     bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius_);
     bool wheel_base_exists = controller_nh.getParam("wheel_base", wheel_base_);
+    controller_nh.getParam("front_wheel_caster_offset", front_wheel_caster_offset_);
 
     if (!wheel_base_exists) {
         ROS_ERROR_STREAM("Obligatory wheel_base configuration parameter is not provided");
@@ -233,7 +235,7 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
 
     // Regardless of how we got radius, use it to set the odometry parameters
     const double wr = wheel_radius_multiplier_odom_ * wheel_radius_;
-    odometry_.setWheelParams(wheel_base_, wr);
+    odometry_.setWheelParams(wheel_base_, wr, front_wheel_caster_offset_);
 
     ROS_INFO_STREAM_NAMED(name_, "Odometry params : wheel radius " << wr << ", wheel base " << wheel_base_);
 

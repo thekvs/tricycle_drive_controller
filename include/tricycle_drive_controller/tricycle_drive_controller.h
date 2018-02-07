@@ -140,6 +140,9 @@ private:
     /// Offset of the front wheel center from the caster joint axis [m]
     double front_wheel_caster_offset_;
 
+    /// Angular offset of the steering angle
+    double front_wheel_steering_offset_;
+
     /// Wheel separation and radius calibration multipliers:
     double wheel_separation_multiplier_;
     double wheel_radius_multiplier_;

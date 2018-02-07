@@ -112,6 +112,7 @@ TricycleDriveController::TricycleDriveController()
     , wheel_base_(0.0)
     , wheel_radius_(0.0)
     , front_wheel_caster_offset_(0.0)
+	, front_wheel_steering_offset_(0.0)
     , wheel_separation_multiplier_(1.0) // FIXME: not needed
     , wheel_radius_multiplier_(1.0)
     , wheel_radius_multiplier_odom_(1.0)
@@ -223,6 +224,7 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
     bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius_);
     bool wheel_base_exists = controller_nh.getParam("wheel_base", wheel_base_);
     controller_nh.getParam("front_wheel_caster_offset", front_wheel_caster_offset_);
+    controller_nh.getParam("front_wheel_steering_offset", front_wheel_steering_offset_);
 
     if (!wheel_base_exists) {
         ROS_ERROR_STREAM("Obligatory wheel_base configuration parameter is not provided");
@@ -266,7 +268,7 @@ TricycleDriveController::update(const ros::Time& time, const ros::Duration& peri
 {
     // COMPUTE AND PUBLISH ODOMETRY
     if (real_hw_) {
-        odometry_.updateFromHWEncoders(front_wheel_cmd.front().getVelocity(), front_wheel_caster_cmd.front().getPosition(), time);
+        odometry_.updateFromHWEncoders(front_wheel_cmd.front().getVelocity(), front_wheel_caster_cmd.front().getPosition() + front_wheel_steering_offset_, time);
     } else if (open_loop_) {
         odometry_.updateOpenLoop(last0_cmd_.speed, last0_cmd_.angle, time);
     } else {
@@ -389,7 +391,7 @@ TricycleDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
     	    	radius = 0.0001;
 		radius = boost::math::copysign(radius,command.angular.z);
 
-    	    command_struct_.angle = std::atan(wheel_base_ / radius);
+    	    command_struct_.angle = std::atan(wheel_base_ / radius) - front_wheel_steering_offset_;
     	    if(std::fabs(command_struct_.angle)>1.55){
                 command_struct_.speed = boost::math::copysign(wheel_base_ * command.angular.z,command.linear.x);
 

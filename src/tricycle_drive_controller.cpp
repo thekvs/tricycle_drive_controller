@@ -129,6 +129,7 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
 {
     typedef std::vector<std::string>::const_iterator NamesIterator;
 
+
     const std::string complete_ns = controller_nh.getNamespace();
     std::size_t id = complete_ns.find_last_of("/");
     name_ = complete_ns.substr(id + 1);
@@ -391,7 +392,7 @@ TricycleDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
     	    	radius = 0.0001;
 		radius = boost::math::copysign(radius,command.angular.z);
 
-    	    command_struct_.angle = std::atan(wheel_base_ / radius) - front_wheel_steering_offset_;
+    	    command_struct_.angle = std::atan(wheel_base_ / radius);
     	    if(std::fabs(command_struct_.angle)>1.55){
                 command_struct_.speed = boost::math::copysign(wheel_base_ * command.angular.z,command.linear.x);
 
@@ -405,6 +406,8 @@ TricycleDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
     if (command_struct_.speed < 0) {
 	command_struct_.angle = -command_struct_.angle;
     }
+
+    command_struct_.angle = command_struct_.angle - front_wheel_steering_offset_;
 
         command_struct_.stamp = ros::Time::now();
         command_.writeFromNonRT(command_struct_);

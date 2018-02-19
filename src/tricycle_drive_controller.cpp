@@ -111,8 +111,8 @@ TricycleDriveController::TricycleDriveController()
     , command_struct_()
     , wheel_base_(0.0)
     , wheel_radius_(0.0)
-    , front_wheel_caster_offset_(0.0)
-	, front_wheel_steering_offset_(0.0)
+    , front_wheel_offset_to_center_(0.0)
+	  , front_wheel_steering_angle_offset_(0.0)
     , wheel_separation_multiplier_(1.0) // FIXME: not needed
     , wheel_radius_multiplier_(1.0)
     , wheel_radius_multiplier_odom_(1.0)
@@ -224,8 +224,8 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
     // If either parameter is not available, we need to look up the value in the URDF
     bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius_);
     bool wheel_base_exists = controller_nh.getParam("wheel_base", wheel_base_);
-    controller_nh.getParam("front_wheel_caster_offset", front_wheel_caster_offset_);
-    controller_nh.getParam("front_wheel_steering_offset", front_wheel_steering_offset_);
+    controller_nh.getParam("front_wheel_offset_to_center", front_wheel_offset_to_center_);
+    controller_nh.getParam("front_wheel_steering_angle_offset", front_wheel_steering_angle_offset_);
 
     if (!wheel_base_exists) {
         ROS_ERROR_STREAM("Obligatory wheel_base configuration parameter is not provided");
@@ -238,7 +238,7 @@ TricycleDriveController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& 
 
     // Regardless of how we got radius, use it to set the odometry parameters
     const double wr = wheel_radius_multiplier_odom_ * wheel_radius_;
-    odometry_.setWheelParams(wheel_base_, wr, front_wheel_caster_offset_);
+    odometry_.setWheelParams(wheel_base_, wr, front_wheel_offset_to_center_);
 
     ROS_INFO_STREAM_NAMED(name_, "Odometry params : wheel radius " << wr << ", wheel base " << wheel_base_);
 
@@ -269,7 +269,10 @@ TricycleDriveController::update(const ros::Time& time, const ros::Duration& peri
 {
     // COMPUTE AND PUBLISH ODOMETRY
     if (real_hw_) {
-        odometry_.updateFromHWEncoders(front_wheel_cmd.front().getVelocity(), front_wheel_caster_cmd.front().getPosition() + front_wheel_steering_offset_, time);
+        double front_wheel_velocity = front_wheel_cmd.front().getVelocity();
+        double front_wheel_steering_angle = front_wheel_caster_cmd.front().getPosition() + front_wheel_steering_angle_offset_;
+
+        odometry_.updateFromHWEncoders(front_wheel_velocity, front_wheel_steering_angle, time);
     } else if (open_loop_) {
         odometry_.updateOpenLoop(last0_cmd_.speed, last0_cmd_.angle, time);
     } else {
@@ -407,7 +410,7 @@ TricycleDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
 	command_struct_.angle = -command_struct_.angle;
     }
 
-    command_struct_.angle = command_struct_.angle - front_wheel_steering_offset_;
+    command_struct_.angle = command_struct_.angle - front_wheel_steering_angle_offset_;
 
         command_struct_.stamp = ros::Time::now();
         command_.writeFromNonRT(command_struct_);

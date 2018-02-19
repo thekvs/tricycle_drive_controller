@@ -202,7 +202,7 @@ private:
     /// Wheel kinematic parameters [m]:
     double wheel_base_;
     double wheel_radius_;
-    double front_wheel_caster_offset_;
+    double front_wheel_offset_to_center_;
 
     /// Previou wheel position/state [rad]:
     double front_wheel_old_pos_;

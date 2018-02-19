@@ -56,7 +56,7 @@ Odometry::Odometry(size_t velocity_rolling_window_size)
     , angular_(0.0)
     , wheel_base_(0.0)
     , wheel_radius_(0.0)
-    , front_wheel_caster_offset_(0.0)
+    , front_wheel_offset_to_center_(0.0)
     , front_wheel_old_pos_(0.0)
     , velocity_rolling_window_size_(velocity_rolling_window_size)
     , linear_acc_(RollingWindow::window_size = velocity_rolling_window_size)
@@ -90,7 +90,7 @@ Odometry::update(double front_wheel_pos, double front_wheel_caster_pos, const ro
     const double sin_phi = std::sin(front_wheel_caster_pos);
 
     /// Correct wheel base by wheel offset
-    const double wheel_base_corrected_ = wheel_base_ + front_wheel_caster_offset_ * sin_phi;
+    const double wheel_base_corrected_ = wheel_base_ + front_wheel_offset_to_center_ * sin_phi;
 
     const double linear = front_wheel_est_vel * cos_phi;
     const double angular = front_wheel_est_vel * sin_phi / wheel_base_corrected_;
@@ -143,7 +143,7 @@ Odometry::updateFromHWEncoders(double front_wheel_velocity, double front_wheel_a
     const double sin_phi = std::sin(front_wheel_angle);
 
     /// Correct wheel base by wheel offset
-    const double wheel_base_corrected_ = wheel_base_ + front_wheel_caster_offset_ * sin_phi;
+    const double wheel_base_corrected_ = wheel_base_ + front_wheel_offset_to_center_ * sin_phi;
 
     const double linear = front_wheel_velocity * wheel_radius_ * cos_phi;
     const double angular = front_wheel_velocity * wheel_radius_* sin_phi / wheel_base_corrected_;
@@ -177,11 +177,11 @@ Odometry::updateFromHWEncoders(double front_wheel_velocity, double front_wheel_a
 }
 
 void
-Odometry::setWheelParams(double wheel_base, double wheel_radius, double front_wheel_caster_offset)
+Odometry::setWheelParams(double wheel_base, double wheel_radius, double front_wheel_offset_to_center)
 {
     wheel_base_ = wheel_base;
     wheel_radius_ = wheel_radius;
-    front_wheel_caster_offset_ = front_wheel_caster_offset;
+    front_wheel_offset_to_center_ = front_wheel_offset_to_center;
 }
 
 void

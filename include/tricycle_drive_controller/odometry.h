@@ -155,7 +155,7 @@ public:
      * \param front_wheel_caster_offset Offset of the front wheel center from the
      * caster joint axis [m]
      */
-    void setWheelParams(double wheel_base, double wheel_radius, double front_wheel_caster_offset);
+    void setWheelParams(double wheel_base, double wheel_radius, double front_wheel_offset_to_center);
 
     /**
      * \brief Velocity rolling window size setter

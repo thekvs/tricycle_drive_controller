@@ -143,6 +143,10 @@ private:
     /// Angular offset of the steering angle
     double front_wheel_steering_angle_offset_;
 
+    // Will dynamically adjust wheel speed depending on difference
+    // between commanded angle and current odom angle
+    double front_wheel_steering_angle_speed_multiplier_;
+
     /// Wheel separation and radius calibration multipliers:
     double wheel_separation_multiplier_;
     double wheel_radius_multiplier_;

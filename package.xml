@@ -1,6 +1,6 @@
 <package>
   <name>tricycle_drive_controller</name>
-  <version>0.1.0</version>
+  <version>0.11.1</version>
   <description>Controller for a tricycle drive mobile base.</description>
   <maintainer email="kvs@sigterm.ru">Konstantin Sorokin</maintainer>
 

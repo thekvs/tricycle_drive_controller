@@ -6,7 +6,8 @@ find_package(catkin REQUIRED COMPONENTS
     urdf
     realtime_tools
     tf
-    nav_msgs)
+    nav_msgs
+    control_toolbox)
 
 catkin_package(
   INCLUDE_DIRS include

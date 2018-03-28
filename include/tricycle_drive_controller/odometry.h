@@ -152,8 +152,10 @@ public:
      * \brief Sets the wheel parameters: radius and separation
      * \param wheel_base   whell base [m]
      * \param wheel_radius     Wheel radius [m]
+     * \param front_wheel_caster_offset Offset of the front wheel center from the
+     * caster joint axis [m]
      */
-    void setWheelParams(double wheel_base, double wheel_radius);
+    void setWheelParams(double wheel_base, double wheel_radius, double front_wheel_offset_to_center);
 
     /**
      * \brief Velocity rolling window size setter
@@ -200,6 +202,7 @@ private:
     /// Wheel kinematic parameters [m]:
     double wheel_base_;
     double wheel_radius_;
+    double front_wheel_offset_to_center_;
 
     /// Previou wheel position/state [rad]:
     double front_wheel_old_pos_;

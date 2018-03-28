@@ -47,10 +47,9 @@
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
-#include <ackermann_msgs/AckermannDrive.h>
-
 #include <tricycle_drive_controller/odometry.h>
 #include <tricycle_drive_controller/speed_limiter.h>
+
 
 namespace tricycle_drive_controller
 {
@@ -138,15 +137,27 @@ private:
     /// Wheel radius (assuming it's the same for the left and right wheels):
     double wheel_radius_;
 
+    /// Offset of the front wheel center from the caster joint axis [m]
+    double front_wheel_offset_to_center_;
+
+    /// Angular offset of the steering angle
+    double front_wheel_steering_angle_offset_;
+
+    // Will dynamically adjust wheel speed depending on difference
+    // between commanded angle and current odom angle
+    double front_wheel_steering_angle_speed_multiplier_;
+
     /// Wheel separation and radius calibration multipliers:
     double wheel_separation_multiplier_;
     double wheel_radius_multiplier_;
+    double wheel_radius_multiplier_odom_;
 
     /// Timeout to consider cmd_vel commands old:
     double ackermann_cmd_timeout_;
 
     /// Frame to use for the robot base:
     std::string base_frame_id_;
+    std::string odom_topic_;
 
     /// Whether to publish odometry to tf or not:
     bool enable_odom_tf_;
@@ -170,7 +181,7 @@ private:
      * \brief Velocity command callback
      * \param command Velocity command message (AckermannDrive)
      */
-    void cmdAckermannCallback(const ackermann_msgs::AckermannDrive& command);
+    void cmdVelCallback(const geometry_msgs::Twist& command);
 
     /**
      * \brief Get the wheel names from a wheel param

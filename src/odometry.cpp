@@ -56,6 +56,7 @@ Odometry::Odometry(size_t velocity_rolling_window_size)
     , angular_(0.0)
     , wheel_base_(0.0)
     , wheel_radius_(0.0)
+    , front_wheel_offset_to_center_(0.0)
     , front_wheel_old_pos_(0.0)
     , velocity_rolling_window_size_(velocity_rolling_window_size)
     , linear_acc_(RollingWindow::window_size = velocity_rolling_window_size)
@@ -88,14 +89,17 @@ Odometry::update(double front_wheel_pos, double front_wheel_caster_pos, const ro
     const double cos_phi = std::cos(front_wheel_caster_pos);
     const double sin_phi = std::sin(front_wheel_caster_pos);
 
+    /// Correct wheel base by wheel offset
+    const double wheel_base_corrected_ = wheel_base_ + front_wheel_offset_to_center_ * sin_phi;
+
     const double linear = front_wheel_est_vel * cos_phi;
-    const double angular = front_wheel_est_vel * sin_phi / wheel_base_;
+    const double angular = front_wheel_est_vel * sin_phi / wheel_base_corrected_;
 
     double radius = 1e6;
 
     if (fabs(angular) >= 1e-6) {
         const double cot_phi = cos_phi / sin_phi;
-        radius = cot_phi * wheel_base_;
+        radius = cot_phi * wheel_base_corrected_;
     }
 
     /// Integrate odometry:
@@ -138,14 +142,17 @@ Odometry::updateFromHWEncoders(double front_wheel_velocity, double front_wheel_a
     const double cos_phi = std::cos(front_wheel_angle);
     const double sin_phi = std::sin(front_wheel_angle);
 
-    const double linear = front_wheel_velocity * cos_phi;
-    const double angular = front_wheel_velocity * sin_phi / wheel_base_;
+    /// Correct wheel base by wheel offset
+    const double wheel_base_corrected_ = wheel_base_ + front_wheel_offset_to_center_ * sin_phi;
+
+    const double linear = front_wheel_velocity * wheel_radius_ * cos_phi;
+    const double angular = front_wheel_velocity * wheel_radius_* sin_phi / wheel_base_corrected_;
 
     double radius = 1e6;
 
     if (fabs(angular) >= 1e-6) {
         const double cot_phi = cos_phi / sin_phi;
-        radius = cot_phi * wheel_base_;
+        radius = cot_phi * wheel_base_corrected_;
     }
 
     const double dt = (time - timestamp_).toSec();
@@ -170,10 +177,11 @@ Odometry::updateFromHWEncoders(double front_wheel_velocity, double front_wheel_a
 }
 
 void
-Odometry::setWheelParams(double wheel_base, double wheel_radius)
+Odometry::setWheelParams(double wheel_base, double wheel_radius, double front_wheel_offset_to_center)
 {
     wheel_base_ = wheel_base;
     wheel_radius_ = wheel_radius;
+    front_wheel_offset_to_center_ = front_wheel_offset_to_center;
 }
 
 void

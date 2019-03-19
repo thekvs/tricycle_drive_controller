@@ -58,7 +58,7 @@ euclideanOfVectors(const urdf::Vector3& vec1, const urdf::Vector3& vec2)
  * \return true if the link is modeled as a Cylinder; false otherwise
  */
 static bool
-isCylinder(const boost::shared_ptr<const urdf::Link>& link)
+isCylinder(const urdf::LinkConstSharedPtr& link)
 {
     if (!link) {
         ROS_ERROR("Link == NULL.");
@@ -91,7 +91,7 @@ isCylinder(const boost::shared_ptr<const urdf::Link>& link)
  * \return true if the wheel radius was found; false otherwise
  */
 static bool
-getWheelRadius(const boost::shared_ptr<const urdf::Link>& wheel_link, double& wheel_radius)
+getWheelRadius(const urdf::LinkConstSharedPtr& wheel_link, double& wheel_radius)
 {
     if (!isCylinder(wheel_link)) {
         ROS_ERROR_STREAM("Wheel link " << wheel_link->name << " is NOT modeled as a cylinder!");
@@ -437,8 +437,8 @@ TricycleDriveController::setOdomParamsFromUrdf(ros::NodeHandle& root_nh, const s
         return false;
     }
 
-    boost::shared_ptr<urdf::ModelInterface> model(urdf::parseURDF(robot_model_str));
-    boost::shared_ptr<const urdf::Joint> front_wheel_joint(model->getJoint(front_wheel_name));
+    urdf::ModelInterfaceSharedPtr model(urdf::parseURDF(robot_model_str));
+    urdf::JointConstSharedPtr front_wheel_joint(model->getJoint(front_wheel_name));
 
     if (lookup_wheel_radius) {
         // Get wheel radius
